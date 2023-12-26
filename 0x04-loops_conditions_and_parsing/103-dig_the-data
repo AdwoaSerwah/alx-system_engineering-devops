@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # This is a test
-apache_log_file="./apache-access.log"
-awk '{gsub(/^[[:space:]]+|[[:space:]]+$/, ""); count[$1" "$9]++} END {for (item in count) print count[item], item}' "$apache_log_file" | sort -nr
+log_file="apache-access.log"
+awk '{ip_code_count[$1, " ", $9]++} END {for (ic in ip_code_count) print "    " ip_code_count[ic], ic}' "$log_file" | sort -nr
