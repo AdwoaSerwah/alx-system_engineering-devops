@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # This script is displaying "Best School" 10 times
-apache_log_file="./apache-access.log"
+apache_log_file="./apache-access.log1"
 awk '{count[$1 " " $9]++} END {for (item in count) print " " count[item], item}' "$apache_log_file" | sort -nr
