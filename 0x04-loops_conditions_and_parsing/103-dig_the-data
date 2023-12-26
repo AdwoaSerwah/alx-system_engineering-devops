@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # This is a test
 log_file="apache-access.log"
-awk '{ip_code_count[$1" "$9]++} END {for (ic in ip_code_count) printf "    %3d %s\n", ip_code_count[ic], ic}' "$log_file" | sort -nr
+awk '{ip_code_count[$1" "$9]++} END {for (ic in ip_code_count) printf "   %4d %s\n", ip_code_count[ic], ic}' "$log_file" | sort -nr
