@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Does a lot
+
+file="/var/run/myscript.pid"
+echo "$$" > $file
+
+closing() {
+	rm -f $file
+	exit 0
+}
+
+terminate() {
+        echo "I hate the kill command"
+	closing
+	exit 0
+}
+
+sint() {
+	echo "Y U no love me?!"
+}
+
+squit() {
+	closing
+}
+
+trap 'terminate' SIGTERM
+trap 'sint' SIGINT
+trap 'squit' SIGQUIT
+
+while true;
+do
+        echo "To infinity and beyond"
+        # sleep 2
+done
