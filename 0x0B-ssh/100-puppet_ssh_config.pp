@@ -1,11 +1,11 @@
 # This Puppet manifest configures the SSH client to use a specific private key
-# and to refuse password authentication.
+# and refuse password authentication by modifying /etc/ssh/ssh_config.
 
-file { '/home/vagrant/.ssh/config':
+file { '/etc/ssh/ssh_config':
   ensure  => file,
-  owner   => 'vagrant',
-  group   => 'vagrant',
-  mode    => '0664',
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0644',
   content => @("EOF")
 Host 100.25.177.89
     User ubuntu
