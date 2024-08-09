@@ -5,13 +5,6 @@ package { 'nginx':
   ensure => installed,
 }
 
-# Ensure the Nginx service is running and enabled
-service { 'nginx':
-  ensure     => running,
-  enable     => true,
-  subscribe  => Package['nginx'],
-}
-
 # Create the custom HTML file to be served at the root
 file { '/var/www/html/index.html':
   ensure  => file,
@@ -22,21 +15,28 @@ file { '/var/www/html/index.html':
 # Create the Nginx configuration file with redirection
 file { '/etc/nginx/sites-available/default':
   ensure  => file,
-  content => @("END"),
+  content => @(END),
 server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
+	listen 80 default_server;
+	listen [::]:80 default_server;
 
-    root /var/www/html;
-    index index.html;
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
 
-    location / {
-        try_files $uri $uri/ =404;
-    }
+	server_name _;	
 
-    location /redirect_me {
-        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
-    }
+	location / {
+		try_files $uri $uri/ =404;
+	}
+
+	location /redirect_me {
+		return 301 https://www.youtube.com/watch%3Fv%3DQH2-TGUlwu4;
+	}
+
+	error_page 404 /custom_404.html;
+	location = /custom_404.html {
+		internal;
+	}
 }
 END
   mode    => '0644',
@@ -45,9 +45,9 @@ END
   notify  => Service['nginx'],
 }
 
-# Restart Nginx to apply changes
-exec { 'restart_nginx':
-  command     => '/usr/sbin/nginx -s stop && /usr/sbin/nginx',
-  refreshonly => true,
-  subscribe   => File['/etc/nginx/sites-available/default'],
+# Start the Nginx service
+service { 'nginx':
+  ensure    => running,
+  enable    => true,
+  subscribe => File['/etc/nginx/sites-available/default'],
 }
