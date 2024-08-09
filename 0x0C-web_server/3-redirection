@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# This script installs Nginx, configures it to display "Hello World!"
+# at the root, and adds a redirect for /redirect_me.
+
+# Update package list and install Nginx
+sudo apt-get update -y
+sudo apt-get install nginx -y
+
+# Configure Nginx to display "Hello World!" on the root path
+echo "Hello World!" | sudo tee /var/www/html/index.html > /dev/null
+
+# Nginx configuration file
+NGINX_CONF="/etc/nginx/sites-available/default"
+
+# Insert the location /redirect_me block before the existing location / block
+sudo sed -i '/^[^#]*location \/ {/i \
+	location /redirect_me {\
+		return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;\
+	}\n' "$NGINX_CONF"
+
+# Reload Nginx using its init script (since systemctl can't be used)
+sudo service nginx reload
