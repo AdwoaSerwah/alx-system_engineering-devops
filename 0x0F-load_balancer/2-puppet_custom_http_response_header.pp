@@ -1,60 +1,61 @@
-# This Puppet manifest installs Nginx and configures it to include a custom HTTP response header
+# Puppet manifest to install and configure Nginx with custom HTTP header
 
-# Install Nginx package
+# Ensure Nginx is installed
 package { 'nginx':
   ensure => installed,
 }
 
-# Create the directory for custom configuration files (if not already present)
-file { '/etc/nginx/sites-available':
-  ensure => directory,
+# Create the custom HTML file to be served at the root
+file { '/var/www/html/index.html':
+  ensure  => file,
+  content => "Hello World!\n",
+  require => Package['nginx'],
 }
 
-file { '/etc/nginx/sites-enabled':
-  ensure => directory,
-}
-
-# Define the Nginx configuration file using inline content
+# Create the Nginx configuration file with custom header and redirection
 file { '/etc/nginx/sites-available/default':
   ensure  => file,
   content => @(END),
 server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
+        listen 80 default_server;
+        listen [::]:80 default_server;
 
-	root /var/www/html;
-	index index.html index.htm index.nginx-debian.html;
+        root /var/www/html;
+        index index.html index.htm index.nginx-debian.html;
 
-	server_name _;	
+        server_name _;
 
-        # Add the custom header
+        # Add custom header
         add_header X-Served-By $HOSTNAME;
 
-	location / {
-		try_files $uri $uri/ =404;
-	}
+        location / {
+                try_files $uri $uri/ =404;
+        }
 
-	location /redirect_me {
-		return 301 https://www.youtube.com/watch%3Fv%3DQH2-TGUlwu4;
-	}
+        location /redirect_me {
+                return 301 https://www.youtube.com/watch%3Fv%3DQH2-TGUlwu4;
+        }
 
-	error_page 404 /custom_404.html;
-	location = /custom_404.html {
-		internal;
-	}
+        error_page 404 /custom_404.html;
+        location = /custom_404.html {
+                internal;
+        }
 }
 END
+  mode    => '0644',
+  owner   => 'root',
+  group   => 'root',
   notify  => Service['nginx'],
 }
 
-# Ensure the default configuration file is linked from sites-enabled
-file { '/etc/nginx/sites-enabled/default':
-  ensure => link,
-  target => '/etc/nginx/sites-available/default',
-  notify => Service['nginx'],
+# Ensure the custom 404 page exists
+file { '/var/www/html/custom_404.html':
+  ensure  => file,
+  content => "Ceci n'est pas une page\n",
+  require => Package['nginx'],
 }
 
-# Ensure the Nginx service is running and enabled
+# Start or restart the Nginx service
 service { 'nginx':
   ensure    => running,
   enable    => true,
