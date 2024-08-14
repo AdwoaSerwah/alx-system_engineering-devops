@@ -1,4 +1,4 @@
-# Puppet manifest to install and configure Nginx
+# Puppet manifest to install and configure Nginx with custom HTTP header
 
 # Ensure Nginx is installed
 package { 'nginx':
@@ -12,31 +12,34 @@ file { '/var/www/html/index.html':
   require => Package['nginx'],
 }
 
-# Create the Nginx configuration file with redirection
+# Create the Nginx configuration file with custom header and redirection
 file { '/etc/nginx/sites-available/default':
   ensure  => file,
-  content => @(END),
+  content => @("END"),
 server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
+        listen 80 default_server;
+        listen [::]:80 default_server;
 
-	root /var/www/html;
-	index index.html index.htm index.nginx-debian.html;
+        root /var/www/html;
+        index index.html index.htm index.nginx-debian.html;
 
-	server_name _;	
+        server_name _;
 
-	location / {
-		try_files $uri $uri/ =404;
-	}
+        # Add custom header
+        add_header X-Served-By ${::hostname};
 
-	location /redirect_me {
-		return 301 https://www.youtube.com/watch%3Fv%3DQH2-TGUlwu4;
-	}
+        location / {
+                try_files $uri $uri/ =404;
+        }
 
-	error_page 404 /custom_404.html;
-	location = /custom_404.html {
-		internal;
-	}
+        location /redirect_me {
+                return 301 https://www.youtube.com/watch%3Fv%3DQH2-TGUlwu4;
+        }
+
+        error_page 404 /custom_404.html;
+        location = /custom_404.html {
+                internal;
+        }
 }
 END
   mode    => '0644',
@@ -45,7 +48,14 @@ END
   notify  => Service['nginx'],
 }
 
-# Start the Nginx service
+# Ensure the custom 404 page exists
+file { '/var/www/html/custom_404.html':
+  ensure  => file,
+  content => "Ceci n'est pas une page\n",
+  require => Package['nginx'],
+}
+
+# Start or restart the Nginx service
 service { 'nginx':
   ensure    => running,
   enable    => true,
