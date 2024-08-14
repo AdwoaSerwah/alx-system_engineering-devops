@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# This script installs Nginx, configures it to display "Hello World!"
+# at the root, adds a redirect for /redirect_me, and includes a custom header
+# X-Served-By that identifies the hostname of the server responding to requests.
+
+# Update package list and install Nginx if not installed
+sudo apt-get update -y
+sudo apt-get install nginx -y
+
+# Configure Nginx to display "Hello World!" on the root path
+echo "Hello World!" | sudo tee /var/www/html/index.html
+
+# Create the custom 404 error page
+echo "Ceci n'est pas une page" | sudo tee /var/www/html/custom_404.html
+
+# Nginx configuration file
+NGINX_CONF="/etc/nginx/sites-available/default"
+
+# Insert the 404 custom block if not already present
+if ! grep -q "error_page 404 /custom_404.html;" "$NGINX_CONF"; then
+    sudo sed -i '/^[^#]*location \/ {/i\\terror_page 404 /custom_404.html;\n\tlocation = /custom_404.html {\n\t\tinternal;\n\t}\n' "$NGINX_CONF"
+fi
+
+# Insert the location /redirect_me block if not already present
+if ! grep -q "location /redirect_me" "$NGINX_CONF"; then
+    sudo sed -i '/^[^#]*location \/ {/i\\tlocation \/redirect_me {\n\t\treturn 301 https:\/\/www.youtube.com\/watch?v=QH2-TGUlwu4;\n\t}\n' "$NGINX_CONF"
+fi
+
+# Get the hostname of the server
+# HOSTNAME=$(hostname)
+
+# Add the custom header X-Served-By with the hostname if not already present
+if ! grep -q "add_header X-Served-By" "$NGINX_CONF"; then
+    sudo sed -i '/^[^#]*location \/ {/i\\tadd_header X-Served-By $HOSTNAME;\n' "$NGINX_CONF"
+fi
+
+# Reload Nginx to apply the new configuration
+sudo service nginx restart
