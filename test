@@ -1,7 +1,0 @@
-server {
-	add_header X-Served-By $HOSTNAME;
-
-	something here
-
-	Another thing
-}
