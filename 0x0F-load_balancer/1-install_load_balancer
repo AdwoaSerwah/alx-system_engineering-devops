@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# This script installs and configures HAProxy to
+# load balance traffic between web-01 and web-02
+# It sets up round-robin distribution and ensures 
+# HAProxy can be managed via init scripts.
+
+# Update package list and install HAProxy
+sudo apt-get update -y
+sudo apt-get install haproxy -y
+
+# HAProxy configuration file path
+HAPROXY_CONF="/etc/haproxy/haproxy.cfg"
+
+# Backup the original configuration file if it does not already exist
+if [ ! -f "$HAPROXY_CONF.bak" ]; then
+    sudo cp "$HAPROXY_CONF" "$HAPROXY_CONF.bak" 
+fi
+
+# Append new configuration to HAProxy config if not present
+if ! grep -q "frontend http_front" "$HAPROXY_CONF"; then
+    sudo bash -c "cat >> $HAPROXY_CONF" <<EOL
+
+# Frontend configuration for load balancing
+frontend http_front
+	bind *:80
+	default_backend http_back
+
+# Backend configuration for load balancing
+backend http_back
+	balance roundrobin
+	server web1 100.25.177.89:80 check
+	server web2 100.25.188.96:80 check
+EOL
+fi
+
+# Restart HAProxy to apply the configuration
+sudo service haproxy restart
+
+# Ensure HAProxy is enabled to start on boot
+sudo systemctl enable haproxy
