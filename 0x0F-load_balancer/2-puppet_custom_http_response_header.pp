@@ -1,18 +1,20 @@
-# Puppet manifest to install and configure Nginx
+# This Puppet manifest installs Nginx and configures it to include a custom HTTP response header
 
-# Ensure Nginx is installed
+# Install Nginx package
 package { 'nginx':
   ensure => installed,
 }
 
-# Create the custom HTML file to be served at the root
-file { '/var/www/html/index.html':
-  ensure  => file,
-  content => "Hello World!\n",
-  require => Package['nginx'],
+# Create the directory for custom configuration files (if not already present)
+file { '/etc/nginx/sites-available':
+  ensure => directory,
 }
 
-# Create the Nginx configuration file with redirection
+file { '/etc/nginx/sites-enabled':
+  ensure => directory,
+}
+
+# Define the Nginx configuration file using inline content
 file { '/etc/nginx/sites-available/default':
   ensure  => file,
   content => @(END),
@@ -25,8 +27,8 @@ server {
 
 	server_name _;	
 
-	# Add the custom header
-	add_header X-Served-By $HOSTNAME;
+        # Add the custom header
+        add_header X-Served-By $HOSTNAME;
 
 	location / {
 		try_files $uri $uri/ =404;
@@ -42,13 +44,17 @@ server {
 	}
 }
 END
-  mode    => '0644',
-  owner   => 'root',
-  group   => 'root',
   notify  => Service['nginx'],
 }
 
-# Start the Nginx service
+# Ensure the default configuration file is linked from sites-enabled
+file { '/etc/nginx/sites-enabled/default':
+  ensure => link,
+  target => '/etc/nginx/sites-available/default',
+  notify => Service['nginx'],
+}
+
+# Ensure the Nginx service is running and enabled
 service { 'nginx':
   ensure    => running,
   enable    => true,
