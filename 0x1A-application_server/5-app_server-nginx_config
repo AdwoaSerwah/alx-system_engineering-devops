@@ -52,9 +52,19 @@ server {
         }
 
         location / {
+                # alias /home/ubuntu/AirBnB_clone_v4/web_dynamic/2-hbnb/;
                 # First attempt to serve request as file, then
                 # as directory, then fall back to displaying a 404.
-                try_files $uri $uri/ =404;
+                # try_files $uri $uri/ =404;
+                rewrite ^/$ /2-hbnb/ last;
+                proxy_pass http://127.0.0.1:5003;
+        }
+
+        # Directly serve the application from Gunicorn
+        location /2-hbnb/ {
+                include proxy_params;
+                proxy_pass http://127.0.0.1:5003;
+                # try_files $uri $uri/ =404;
         }
 }
 
@@ -73,9 +83,9 @@ server {
         }
 
         # Directly serve the application from Gunicorn
-        location / {
-                include proxy_params;
-                proxy_pass http://127.0.0.1:5003;
-                # try_files $uri $uri/ =404;
-        }
+        #location /2-hbnb/ {
+        #        include proxy_params;
+        #        proxy_pass http://127.0.0.1:5003;
+        #        # try_files $uri $uri/ =404;
+        #}
 }
