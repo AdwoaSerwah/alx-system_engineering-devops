@@ -24,3 +24,4 @@ if [ -n "$PIDS" ]; then
     done
 else
     echo "No Gunicorn processes found."
+fi
