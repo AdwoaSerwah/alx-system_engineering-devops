@@ -1,12 +1,27 @@
 #!/usr/bin/env bash
-# This script gracefully reloads gunicorn
+# This script reloads all Gunicorn master processes gracefully by identifying the leader.
 
+# Get all Gunicorn process PIDs, excluding the grep process itself
 PIDS=$(pgrep -f "gunicorn")
 
-if [ -z "$PIDS" ]; then
-  echo "No gunicorn pid found."
+# Check if any Gunicorn processes were found
+if [ -n "$PIDS" ]; then
+    # Iterate through each PID
+    for PID in $PIDS; do
+        # Get the parent PID
+        parent_pid=$(ps -o ppid= -p "$PID" | tr -d ' ')
+
+        # Check if parent_pid is not empty
+        if [ -n "$parent_pid" ]; then
+            # Consider PID as master if its PPID is 1 or if it is known to be a master
+            if [ "$parent_pid" -eq 1 ]; then
+                # echo "Sending HUP signal to master PID $PID"
+                kill -HUP "$PID"
+            fi
+        else
+            echo "Failed to get parent PID for $PID"
+        fi
+    done
 else
-  for PID in $PIDS; do
-    kill -HUP "$PID"
-  done
+    echo "No Gunicorn processes found."
 fi
