@@ -1,23 +1,8 @@
 #!/usr/bin/env bash
 # This script configures Nginx to run as the nginx user and listen on all active IPs on port 8080
 
-# Uncomment and change the user directive to nginx
-# sed -i 's/#user www-data;/user nginx;/' /etc/nginx/nginx.conf
+chmod 644 /etc/nginx/nginx.conf
 sed -Ei 's/\s*#?\s*user .*/user nginx;/' /etc/nginx/nginx.conf
-
-# Update the Nginx configuration to listen on port 8080 for all active IPs
-sed -i 's/listen 80 default_server;/listen 0.0.0.0:8080 default_server;/' /etc/nginx/sites-available/default
-sed -i 's/listen \[::\]:80 default_server ipv6only=on;/listen [::]:8080 default_server;/' /etc/nginx/sites-available/default
-
-# Check if port 8080 is in use
-if ss -tuln | grep -q ':8080'; then
-    # echo "Port 8080 is in use. Checking for Apache processes..."
-    # Find and kill all Apache processes
-    pgrep apache2 | while read -r pid; do
-        # echo "Killing Apache process with PID: $pid"
-        kill -9 "$pid"
-    done
-fi
-
-# Restart Nginx to apply the changes
-service nginx restart
+sed -Ei 's/(listen (\[::\]:)?80) /\180 /' /etc/nginx/sites-enabled/default
+pkill apache2
+su nginx -s /bin/bash -c 'service nginx restart'
