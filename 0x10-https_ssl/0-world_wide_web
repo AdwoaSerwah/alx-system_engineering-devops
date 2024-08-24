@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# This script checks the DNS records of specific subdomains for a given domain.
+
+# Function to retrieve DNS record information
+get_subdomain_info() {
+  local domain=$1
+  local subdomain=$2
+
+  # Use dig to get the DNS record and type
+  record_info=$(dig "${subdomain}.${domain}" | grep -A1 'ANSWER SECTION:')
+  # echo "Record info: $record_info"
+  
+  if [[ -n $record_info ]]; then
+    record_type=$(echo "$record_info" | awk '{print $4}' | tr -d '\n')
+    destination=$(echo "$record_info" | awk '{print $5}' | tr -d '\n')
+    echo "The subdomain $subdomain is a $record_type record and points to $destination"
+  else
+    echo "No DNS record found for $subdomain.$domain"
+  fi
+}
+
+# Main script logic
+domain=$1
+subdomain=$2
+
+# List of default subdomains to check if no specific subdomain is provided
+default_subdomains=("www" "lb-01" "web-01" "web-02")
+
+if [[ -n $subdomain ]]; then
+  get_subdomain_info $domain $subdomain
+else
+  for sub in "${default_subdomains[@]}"; do
+    get_subdomain_info $domain $sub
+  done
+fi
