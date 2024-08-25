@@ -1,34 +1,9 @@
 #!/usr/bin/env bash
-# This script creates a backup of custom MySQL databases and compresses it.
+# Creates a dump of all sql databases
+mysqldump -u root --password="$1" -A --events > backup.sql
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <mysql_root_password>"
-    exit 1
-fi
+# Create the filename for the compressed archive 
+name_of_file=$(date +"%d-%m-%Y")
 
-PASSWORD=$1
-DATE=$(date +%d-%m-%Y)
-BACKUP_FILE="backup.sql"
-ARCHIVE_FILE="${DATE}.tar.gz"
-
-# Get a list of user-created databases
-DATABASES=$(mysql -uroot -p"${PASSWORD}" -e "SHOW DATABASES;" | grep -Ev "(information_schema|mysql|performance_schema|sys|Database)")
-
-# Check if there are databases to back up
-if [ -z "$DATABASES" ]; then
-    echo "No databases to back up."
-    exit 1
-fi
-
-# Dump the databases
-mysqldump -uroot -p"${PASSWORD}" --databases ${DATABASES} > "${BACKUP_FILE}" 2>/dev/null
-
-# Check if the mysqldump command was successful
-if ! [ -s "${BACKUP_FILE}" ]; then
-    echo "Failed to dump databases. Please check your credentials and database names."
-    exit 1
-fi
-
-# Compress the dump
-tar -czf "${ARCHIVE_FILE}" "${BACKUP_FILE}"
-echo "Backup completed and saved to ${ARCHIVE_FILE}"
+# Create the compressed archive
+tar -czvf "$name_of_file".tar.gz backup.sql
