@@ -12,7 +12,7 @@ def get_employee_todo_json(user_id):
     user_url = f"https://jsonplaceholder.typicode.com/users/{user_id}"
     user_response = requests.get(user_url)
     user_data = user_response.json()
-    name = user_data.get("name")
+    name = user_data.get("username")
 
     # Check if the employee exists
     if user_response.status_code != 200:

@@ -12,7 +12,7 @@ def get_employee_todo_csv(user_id):
     user_url = f"https://jsonplaceholder.typicode.com/users/{user_id}"
     user_response = requests.get(user_url)
     user_data = user_response.json()
-    name = user_data.get("name")
+    name = user_data.get("username")
 
     # Fetch employee's todo list
     todos_url = f"https://jsonplaceholder.typicode.com/users/{user_id}/todos"
